@@ -47,7 +47,7 @@ interface run_convert_props {
 
 const run_convert = async ({ path, ratio, isReplace, isRecursive, setResult }: run_convert_props) => {
   try {
-    const response = await invoke<string>("convert_folder_to_webp", { path, isReplace, isRecursive, ratio });
+    const response = await invoke<string>("convert_to_webp", { path, isReplace, isRecursive, ratio });
     setResult(response);
   } catch (error) {
     setResult(String(error));
