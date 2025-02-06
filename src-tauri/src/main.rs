@@ -9,6 +9,7 @@ use std::{
     path::{self, PathBuf},
 };
 use tauri::api::file;
+use std::time::Instant;
 
 fn main() {
     tauri::Builder::default()
@@ -24,7 +25,10 @@ async fn convert_to_webp(
     isReplace: bool,
     isRecursive: bool,
 ) -> Result<String, String> {
+    let start_time = Instant::now();
+
     let file_paths: Vec<String> = get_paths(&path, &isRecursive)?;
+    let file_len = file_paths.len();
 
     for file_path in file_paths {
         let _ = tokio::task::spawn_blocking(move || {
@@ -33,7 +37,9 @@ async fn convert_to_webp(
         }).await.map_err(|e| e.to_string())?;
     }
 
-    return Ok("".to_string());
+    let duration = start_time.elapsed();
+
+    return Ok(format!("{}個のファイルを{}秒で変換完了しました。", file_len, duration.as_secs()).to_string());
 }
 
 fn convert(filePath: &String, ratio: &u32, is_replace: &bool) -> Result<String, String> {

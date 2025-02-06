@@ -47,7 +47,16 @@ interface run_convert_props {
 
 const run_convert = async ({ path, ratio, isReplace, isRecursive, setResult }: run_convert_props) => {
   try {
+    const converting = "変換中..."
+    setResult(converting)
+    let end_char = 3;
+    const intervalId = setInterval(() => {
+      end_char++;
+      end_char %= 4;
+      setResult(converting.substring(0, 3 + end_char))
+    }, 500)
     const response = await invoke<string>("convert_to_webp", { path, isReplace, isRecursive, ratio });
+    clearInterval(intervalId)
     setResult(response);
   } catch (error) {
     setResult(String(error));
@@ -94,6 +103,7 @@ const App = (): JSX.Element => {
   const [ratio, setRatio] = useState<number>(85);
   const [isReplace, setIsReplace] = useState<boolean>(false);
   const [isRecursive, setIsRecursive] = useState<boolean>(false);
+  const [status, setStatus] = useState<string>("normal");
 
   return (
     <div className="App">
@@ -104,17 +114,35 @@ const App = (): JSX.Element => {
           <Checkbox text="変換後に元の画像を置き換える" value={isReplace} setValue={setIsReplace} />
           <Checkbox text="すべてのフォルダを対象にする" value={isRecursive} setValue={setIsRecursive} />
         </div>
-        <p>{result}</p>
+        <p>　{result}　</p>
       </div>
       <div className="container" style={{ flex: 1, outline: "1px solid white", borderRadius: "10px", height: "95vh", margin: "10px" }}>
         <p style={{ padding: "10px" }}>{path ? ("選択されたフォルダ: " + path) : "ドロップしてください"}</p>
         <div className="menu-container">
           <MenuButton text="選択する" onClick={() => select_folder({ setPath })} />
-          <MenuButton text="変換実行" onClick={() => run_convert({ path, ratio, isReplace, isRecursive, setResult })} />
+          <MenuButton text="変換実行" onClick={() => run_convertion_tasks({ path, ratio, isReplace, isRecursive, setResult, status, setStatus })} />
         </div>
       </div>
     </div>
   )
+}
+
+interface run_convertion_tasks_props {
+  path: string,
+  ratio: number,
+  isReplace: boolean,
+  isRecursive: boolean,
+  setResult: (result: string) => void,
+  status: string,
+  setStatus: (value: string) => void
+}
+
+const run_convertion_tasks = ({ path, ratio, isReplace, isRecursive, setResult, status, setStatus }: run_convertion_tasks_props) => {
+  if (status == "normal") {
+    setStatus("converting");
+    run_convert({ path, ratio, isReplace, isRecursive, setResult })
+      .then(() => setStatus("normal"));
+  }
 }
 
 export default App

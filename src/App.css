@@ -203,4 +203,8 @@ input[type="range"]:focus::-moz-range-thumb {
   max-width: 95%;
   text-wrap: balance;
   text-align: center;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
