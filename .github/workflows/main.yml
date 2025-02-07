@@ -39,3 +39,8 @@ jobs:
         with:
           name: tauri-windows-build
           path: src-tauri/target/release/bundle/exe/*.exe
+
+- name: ビルド後のファイルを確認
+        run: |
+          echo "Checking files in bundle directory..."
+          dir src-tauri/target/release/bundle /s
