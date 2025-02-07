@@ -44,4 +44,4 @@ jobs:
         shell: cmd
         run: |
           echo "Checking files in bundle directory..."
-          dir src-tauri/target/release/bundle /s
+          dir "src-tauri/target/release/bundle" /s
