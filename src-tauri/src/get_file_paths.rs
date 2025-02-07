@@ -42,7 +42,6 @@ fn get_folder_paths(folder_path: &String) -> Result<Vec<String>, String> {
     Ok(folder_paths)
 }
 
-
 fn get_file_paths(folder_path: &String) -> Result<Vec<String>, String> {
     let mut file_paths: Vec<String> = Vec::new();
     let entries = fs::read_dir(&folder_path).map_err(|e| e.to_string())?; // ここでエラー処理
