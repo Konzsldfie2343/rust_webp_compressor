@@ -39,11 +39,11 @@ jobs:
       - name: build tauri app
         uses: tauri-apps/tauri-action@v0
         with:
-          projectPath: './path/to/your/tauri/project'
+          projectPath: './tauri-app'
           args: ${{ matrix.args }}
       - name: upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: tauri-app
-          path: './path/to/your/tauri/project/dist'
+          path: './tauri-app/dist'
           if-no-files-found: error
