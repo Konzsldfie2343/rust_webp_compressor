@@ -13,8 +13,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - platform: 'macos-latest'
-            args: '--target x86_64-apple-darwin'
           - platform: 'windows-latest'
             args: ''
 
@@ -43,5 +41,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: tauri-app
-          path: './tauri-app/dist'
+          path: 'tauri-app/dist/WebP Converter'
           if-no-files-found: error
