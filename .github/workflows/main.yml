@@ -1,45 +1,41 @@
-name: 'publish'
+name: Build Windows Executable
 
 on:
   push:
     branches:
-      - '*'
+      - main  # または任意のブランチ
+  pull_request:
 
 jobs:
-  publish-tauri:
-    permissions:
-      contents: write
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - platform: 'windows-latest'
-            args: ''
+  build:
+    runs-on: windows-latest
 
-    runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v4
-      - name: setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 'lts/*'
-      - name: install Rust stable
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+
+      - name: Rust をセットアップ
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.platform == 'macos-latest' && 'x86_64-apple-darwin' || '' }}
-      - name: install dependencies (ubuntu only)
-        if: matrix.platform == 'ubuntu-22.04'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.0-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
-      - name: build tauri app
-        uses: tauri-apps/tauri-action@v0
+          targets: x86_64-pc-windows-msvc
+
+      - name: Node.js をセットアップ
+        uses: actions/setup-node@v4
         with:
-          projectPath: 'tauri-app'
-          args: ${{ matrix.args }}
-      - name: upload artifacts
+          node-version: 18
+          cache: npm
+
+      - name: 必要な依存関係をインストール
+        run: npm install
+
+      - name: Tauri CLI のインストール
+        run: npm install -g @tauri-apps/cli
+
+      - name: Windows 用の Tauri をビルド
+        run: npm run tauri build
+
+      - name: ビルド成果物をアップロード
         uses: actions/upload-artifact@v4
         with:
-          name: tauri-app
-          path: 'tauri-app/dist/WebP Converter'
-          if-no-files-found: error
+          name: tauri-windows-build
+          path: src-tauri/target/release/bundle/msi/*.msi  # .exe の場合は適宜変更name: 'publish'
