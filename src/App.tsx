@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import { open } from "@tauri-apps/api/dialog";
+import { listen } from "@tauri-apps/api/event";
 import { motion } from "framer-motion";
 import "./App.css";
 
@@ -47,16 +48,8 @@ interface run_convert_props {
 
 const run_convert = async ({ path, ratio, isReplace, isRecursive, setResult }: run_convert_props) => {
   try {
-    const converting = "変換中..."
-    setResult(converting)
-    let end_char = 3;
-    const intervalId = setInterval(() => {
-      end_char++;
-      end_char %= 4;
-      setResult(converting.substring(0, 3 + end_char))
-    }, 500)
+    setResult("変換中...");
     const response = await invoke<string>("convert_to_webp", { path, isReplace, isRecursive, ratio });
-    clearInterval(intervalId)
     setResult(response);
   } catch (error) {
     setResult(String(error));
@@ -105,20 +98,58 @@ const App = (): JSX.Element => {
   const [isRecursive, setIsRecursive] = useState<boolean>(false);
   const [status, setStatus] = useState<string>("normal");
 
+  useEffect(() => {
+    const dragarea = document.getElementById("dragarea");
+    if (!dragarea) return;
+
+    const dragover_handler = (e: DragEvent) => {
+      e.preventDefault();
+    }
+
+    const drop_handler = (e: DragEvent) => {
+      e.preventDefault();
+    }
+
+    dragarea.addEventListener("dragover", (e) => {
+      dragover_handler(e);
+    })
+    dragarea.addEventListener("drop", (e) => {
+      drop_handler(e);
+    });
+
+    return () => {
+      dragarea.removeEventListener("dragover", dragover_handler);
+      dragarea.removeEventListener("drop", drop_handler);
+    }
+  }, []);
+
+  useEffect(() => {
+    const unlisten = listen<string[]>("tauri://file-drop", (event) => {
+      if (event.payload.length > 0 && status == "normal") {
+        setPath(event.payload[0]);
+      }
+    })
+    return () => { unlisten.then(fn => fn()) }
+  }, [])
+
   return (
     <div className="App">
       <div className="container" style={{ flex: 2 }}>
+        <p></p>
         <h1>画像を自動で軽量化</h1>
-        <RangeSlider value={ratio} setValue={setRatio} />
+        <div style={{ display: "none" }}>
+          <RangeSlider value={ratio} setValue={setRatio} />
+        </div>
         <div className="checkbox-container">
           <Checkbox text="変換後に元の画像を置き換える" value={isReplace} setValue={setIsReplace} />
           <Checkbox text="すべてのフォルダを対象にする" value={isRecursive} setValue={setIsRecursive} />
         </div>
         <p>　{result}　</p>
       </div>
-      <div className="container" style={{ flex: 1, outline: "1px solid white", borderRadius: "10px", height: "95vh", margin: "10px" }}>
+      <div id="dragarea" className="container" style={{ flex: 1, height: "95vh", margin: "10px" }}>
         <p style={{ padding: "10px" }}>{path ? ("選択されたフォルダ: " + path) : "ドロップしてください"}</p>
         <div className="menu-container">
+          <MenuButton text="再読み込み" onClick={() => window.location.reload()} />
           <MenuButton text="選択する" onClick={() => select_folder({ setPath })} />
           <MenuButton text="変換実行" onClick={() => run_convertion_tasks({ path, ratio, isReplace, isRecursive, setResult, status, setStatus })} />
         </div>

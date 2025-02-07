@@ -135,7 +135,7 @@ input[type="checkbox"] {
 
 .menu-container {
   display: flex;
-  min-height: 100px;
+  min-height: 150px;
   width: 100%;
   flex-direction: column;
   align-items: center;

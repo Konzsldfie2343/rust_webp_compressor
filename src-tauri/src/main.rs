@@ -1,14 +1,13 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use image::{buffer::EnumerateRows, io::Reader as ImageReader};
+use image::{ io::Reader as ImageReader};
+use rayon::prelude::*;
 use std::path::Path;
 use std::{
-    fmt::format,
     fs,
     path::{self, PathBuf},
 };
-use tauri::api::file;
 use std::time::Instant;
 
 fn main() {
@@ -30,19 +29,16 @@ async fn convert_to_webp(
     let file_paths: Vec<String> = get_paths(&path, &isRecursive)?;
     let file_len = file_paths.len();
 
-    for file_path in file_paths {
-        let _ = tokio::task::spawn_blocking(move || {
-            convert(&file_path, &ratio, &isReplace)?;
-            return Ok::<String, String>("".to_string());
-        }).await.map_err(|e| e.to_string())?;
-    }
+    file_paths.par_iter().try_for_each(|file_path| {
+        convert(file_path, &ratio, &isReplace)
+    })?;
 
     let duration = start_time.elapsed();
 
-    return Ok(format!("{}個のファイルを{}秒で変換完了しました。", file_len, duration.as_secs()).to_string());
+    Ok(format!("{}個のファイルを{}秒で変換完了しました。", file_len, (duration.as_secs_f32() * 100.0).floor() / 100.0).to_string())
 }
 
-fn convert(filePath: &String, ratio: &u32, is_replace: &bool) -> Result<String, String> {
+fn convert(filePath: &String, ratio: &u32, is_replace: &bool) -> Result<(), String> {
     // 画像を開く
     let img = ImageReader::open(filePath).map_err(|e| e.to_string())?;
     let img = img.decode().map_err(|e| e.to_string())?; // `DynamicImage` に変換
@@ -59,7 +55,7 @@ fn convert(filePath: &String, ratio: &u32, is_replace: &bool) -> Result<String, 
         fs::remove_file(filePath).map_err(|e| e.to_string())?;
     }
 
-    return Ok(output_path.to_string_lossy().to_string()); // 出力ファイルのパスを返す
+    Ok(()) // 正常終了を示す
 }
 
 fn get_paths(path: &String, is_recursive: &bool) -> Result<Vec<String>, String> {
@@ -77,15 +73,15 @@ fn get_paths(path: &String, is_recursive: &bool) -> Result<Vec<String>, String> 
                 folder_paths.extend(new_folders); // 後から追加する
             }
 
-            return Ok(file_paths);
+            Ok(file_paths)
         } else {
             file_paths = get_file_paths(&path)?;
-            return Ok(file_paths);
+            Ok(file_paths)
         }
     } else if new_path.is_file() {
-        return Ok(vec![path.clone()]);
+        Ok(vec![path.clone()])
     } else {
-        return Err(format!("指定されたパス {} は存在しないか、通常のファイルまたはディレクトリのパスではありません。", path));
+        Err(format!("指定されたパス {} は存在しないか、通常のファイルまたはディレクトリのパスではありません。", path))
     }
 }
 
