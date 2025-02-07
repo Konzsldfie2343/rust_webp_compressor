@@ -42,7 +42,7 @@ jobs:
           projectPath: './path/to/your/tauri/project'
           args: ${{ matrix.args }}
       - name: upload artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: tauri-app
           path: './path/to/your/tauri/project/dist'
