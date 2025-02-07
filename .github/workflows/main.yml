@@ -41,6 +41,7 @@ jobs:
           path: src-tauri/target/release/bundle/exe/*.exe
 
       - name: ビルド後のファイルを確認
+        shell: cmd
         run: |
           echo "Checking files in bundle directory..."
           dir src-tauri/target/release/bundle /s
