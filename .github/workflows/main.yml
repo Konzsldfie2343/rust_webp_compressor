@@ -38,4 +38,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: tauri-windows-build
-          path: src-tauri/target/release/bundle/msi/*.msi  # .exe の場合は適宜変更name: 'publish'
+          path: src-tauri/target/release/bundle/msi/*.exe  # .exe の場合は適宜変更name: 'publish'
