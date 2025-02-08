@@ -1,0 +1,15 @@
+{
+    "tauri": {
+        "bundle" {
+            "windows" {
+                "wix": null,
+                "nsis": {
+                    "oneClick": false,
+                    "perMachine": false,
+                    "allowElevation": true,
+                    "allowDowngrade": false
+                }
+            }
+        }
+    }
+}
