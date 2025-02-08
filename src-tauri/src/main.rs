@@ -51,6 +51,16 @@ fn convert(filePath: &String, ratio: &u32, is_replace: &bool) -> Result<(), Stri
     img.save_with_format(&output_path, image::ImageFormat::WebP)
         .map_err(|e| e.to_string())?;
 
+    // 元のファイルサイズと変換後のファイルサイズを比較
+    let original_size = fs::metadata(filePath).map_err(|e| e.to_string())?.len();
+    let converted_size = fs::metadata(&output_path).map_err(|e| e.to_string())?.len();
+
+    if converted_size >= original_size {
+        // 変換後のファイルが元のファイルより大きい場合、変換を取り消す
+        fs::remove_file(&output_path).map_err(|e| e.to_string())?;
+        return Err("変換後のファイルサイズが元のファイルサイズより大きいため、変換を取り消しました。".to_string());
+    }
+
     if *is_replace {
         fs::remove_file(filePath).map_err(|e| e.to_string())?;
     }
