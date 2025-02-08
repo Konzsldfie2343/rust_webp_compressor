@@ -39,9 +39,3 @@ jobs:
         with:
           name: tauri-windows-build
           path: src-tauri/target/release/bundle/nsis/*.exe
-
-      - name: ビルド後のファイルを確認
-        shell: cmd
-        run: |
-          echo "Checking files in bundle directory..."
-          dir "src-tauri/target/release/bundle" /s
